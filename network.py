@@ -487,7 +487,9 @@ class ChemicalReactionNetwork:
             
             # Fire the chosen reaction
             rxn = self.reactions[reaction_idx]
-            rxn.fire(dt=1.0, time=t_next)  # dt doesn't matter for fire with explicit time
+            for sp, net in zip(self._species_list, rxn.stoich_net_vec):
+                last_c = sp.get_concentration()[-1][1]
+                sp.add_concentration(t_next, last_c + net)   # net is exactly -1 or +1
             
             # Apply degradation to all species
             for sp in self._species_list:
