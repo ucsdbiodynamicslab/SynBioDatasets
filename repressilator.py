@@ -1,5 +1,3 @@
-# repressilator.py
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -53,15 +51,14 @@ def build_repressilator(
     return crn
 
 
-def run_ode_demo():
+def run_ode_demo(initial = {"A": 10.0, "B": 0.0, "C": 0.0}, t_span=(0, 100)):
     crn = build_repressilator()
 
-    initial = {"A": 10.0, "B": 0.0, "C": 0.0}
-    t_eval = np.linspace(0, 100, 2000)
+    t_eval = np.linspace(t_span[0], t_span[1], 20 * (t_span[1] - t_span[0]))
 
     t, y = crn.simulate(
         initial,
-        (0, 100),
+        t_span,
         method="ode",
         t_eval=t_eval,
         method_solver="RK45",
@@ -84,15 +81,15 @@ def run_ode_demo():
     plt.tight_layout()
     plt.show()
 
+    return (t, y)
 
-def run_ssa_demo():
+
+def run_ssa_demo(initial = {"A": 10.0, "B": 0.0, "C": 0.0}, t_span=(0, 100)):
     crn = build_repressilator()
-
-    initial = {"A": 50, "B": 0, "C": 0}
 
     t, y = crn.simulate(
         initial,
-        (0, 100),
+        t_span,
         method="ssa",
         seed=42,
     )
@@ -110,16 +107,18 @@ def run_ssa_demo():
     plt.tight_layout()
     plt.show()
 
+    return (t, y)
 
-def run_cle_demo():
+
+def run_cle_demo(initial = {"A": 10.0, "B": 0.0, "C": 0.0}, t_span=(0, 100)):
     crn = build_repressilator()
 
-    initial = {"A": 10.0, "B": 0.0, "C": 0.0}
-    t_eval = np.linspace(0, 100, 2000)
+    
+    t_eval = np.linspace(t_span[0], t_span[1], 20 * (t_span[1] - t_span[0]))
 
     t, y = crn.simulate(
         initial,
-        (0, 100),
+        t_span,
         method="cle",
         t_eval=t_eval,
         seed=1,
@@ -138,6 +137,8 @@ def run_cle_demo():
     plt.legend()
     plt.tight_layout()
     plt.show()
+
+    return (t, y)
 
 
 if __name__ == "__main__":

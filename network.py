@@ -458,7 +458,6 @@ class ChemicalReactionNetwork:
                 self.species[name]._concentrations = [float(conc)]
         
         while t < t_end:
-            print("here")
             # Calculate propensities for all reactions
             propensities = self.compute_flux_vector(time=t)
             
