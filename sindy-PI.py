@@ -49,10 +49,14 @@ def finite_diff(X: np.ndarray, dt: float, order: int = 4) -> np.ndarray:
     Xdot = np.zeros_like(X)
     if order == 4 and m >= 5:
         Xdot[2:-2] = (-X[4:] + 8*X[3:-1] - 8*X[1:-3] + X[:-4]) / (12 * dt)
-        Xdot[0]    = (-3*X[0]  + 4*X[1]  - X[2])  / (2 * dt)
-        Xdot[1]    = (-3*X[1]  + 4*X[2]  - X[3])  / (2 * dt)
-        Xdot[-2]   = ( 3*X[-2] - 4*X[-3] + X[-4]) / (2 * dt)
-        Xdot[-1]   = ( 3*X[-1] - 4*X[-2] + X[-3]) / (2 * dt)
+        # Index 1 (use points 0, 1, 2, 3, 4)
+        Xdot[1] = (-3*X[0] - 10*X[1] + 18*X[2] - 6*X[3] + X[4]) / (12 * dt)
+        # Index -2 (use points -5, -4, -3, -2, -1)
+        Xdot[-2] = (3*X[-1] + 10*X[-2] - 18*X[-3] + 6*X[-4] - X[-5]) / (12 * dt)
+        
+        # Absolute edges (remain 2nd order one-sided)
+        Xdot[0]  = (-3*X[0]  + 4*X[1]  - X[2])  / (2 * dt)
+        Xdot[-1] = ( 3*X[-1] - 4*X[-2] + X[-3]) / (2 * dt)
     else:
         Xdot[1:-1] = (X[2:] - X[:-2]) / (2 * dt)
         Xdot[0]    = (-3*X[0]  + 4*X[1]  - X[2])  / (2 * dt)
@@ -212,12 +216,14 @@ class ImplicitSINDy:
         # an x variable (index < n_states), not an xdot variable.
         exp_j = self.exponents_[j]
         n = self._n_states
-        is_raw_state = (
-            sum(exp_j) == 1
-            and any(exp_j[i] == 1 for i in range(n))
-            and all(exp_j[i] == 0 for i in range(n, 2*n))
-        )
-        if is_raw_state:
+        # Check if the term contains any derivative (xdot) variables
+        has_xdot = any(exp_j[i] > 0 for i in range(n, 2*n))
+        # Check if it's a "pure" term (degree > 0, but no derivative)
+        is_pure_state = (not has_xdot) and (sum(exp_j) > 0)
+        # This determines if the term is a simple x1, x2, etc. (for the flag)
+        is_raw_state = sum(exp_j) == 1 and not has_xdot
+
+        if is_pure_state:
             aic += self.implicit_bonus
 
         return {
@@ -296,7 +302,9 @@ class ImplicitSINDy:
               f"(total-degree <= {d},  C(2*{n}+{d},{d}) = {n_funcs})")
 
         n_val = max(1, int(m * self.n_val_frac))
-        idx   = np.random.permutation(m)
+        # Use a fixed generator to ensure the validation split is always the same
+        rng = np.random.default_rng(42) 
+        idx = rng.permutation(m)
         tr, val = idx[n_val:], idx[:n_val]
         Theta_tr, Theta_val = Theta[tr], Theta[val]
 
