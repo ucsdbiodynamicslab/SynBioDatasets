@@ -238,3 +238,5 @@ print(f"Standard deviation: {std_final}")
 
 - Gillespie, D. T. (1977). "Exact stochastic simulation of coupled chemical reactions"
 - Higham, D. J. (2008). "Modeling and simulating chemical reactions"
+
+# Simulated Datasets
